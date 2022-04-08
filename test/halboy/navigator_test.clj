@@ -210,7 +210,8 @@
             user (navigator/resource result)]
 
         (is (= 200 status))
-
+        (is (= (create-url base-url (format "/users/%s" "fred"))
+              (:href result)))
         (is (= "Fred" (hal/get-property user :name))))))
 
   (testing "should be able to focus on nested embedded resource"

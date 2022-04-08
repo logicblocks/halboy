@@ -277,7 +277,8 @@
                             (hal/get-resource resource key)
                             (nth resource key))]
     (if embedded-resource
-      (assoc navigator :resource embedded-resource)
+      (assoc navigator :resource embedded-resource
+                       :href (hal/get-href embedded-resource :self))
       (throw (ex-info "Attempting to focus on embedded resource which does not exist"
                {:resource resource})))))
 
