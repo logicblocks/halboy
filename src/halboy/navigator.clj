@@ -8,7 +8,8 @@
             [halboy.http.protocol :as http]
             [halboy.params :as params]
             [halboy.argutils :refer [deep-merge]]
-            [halboy.url :as url]))
+            [halboy.url :as url])
+  (:import (halboy.resource Resource)))
 
 (def default-settings
   {:client           (client/new-http-client)
@@ -266,25 +267,15 @@
          query-params (:query-params resolved-link)]
      (delete-url href query-params (:settings navigator)))))
 
-(defn- list-or-vector?
-  [item]
-  (or (list? item) (vector? item)))
-
 (defn- focus-key
-  [navigator key]
-  (let [resource (resource navigator)
-        embedded-resource (if (keyword? key)
-                            (hal/get-resource resource key)
-                            (nth resource key))]
-    (if embedded-resource
-      (assoc navigator :resource embedded-resource
-                       :href (hal/get-href embedded-resource :self))
-      (throw (ex-info "Attempting to focus on embedded resource which does not exist"
-               {:resource resource})))))
+  [resource key]
+  (if (keyword? key)
+    (hal/get-resource resource key)
+    (nth resource key)))
 
 (defn- focus-recursive
-  [navigator keys]
-  (loop [result navigator
+  [resource keys]
+  (loop [result resource
          remaining-keys keys]
     (let [key (first remaining-keys)]
       (if key
@@ -296,9 +287,15 @@
 (defn focus
   "Focuses navigator on embedded resource."
   [navigator key-or-keys]
-  (if (list-or-vector? key-or-keys)
-    (focus-recursive navigator key-or-keys)
-    (focus-key navigator key-or-keys)))
+  (let [resource (resource navigator)
+        focused-resource (if (keyword key-or-keys)
+                           (focus-key resource key-or-keys)
+                           (focus-recursive resource key-or-keys))]
+    (if (instance? Resource focused-resource)
+      (resource->Navigator focused-resource {})
+      (throw (ex-info (format "Focusing must result in a single resource, resulted in %s"
+                        (type focused-resource))
+               {:resource resource})))))
 
 (defn follow-redirect
   "Fetches the url of the location header"

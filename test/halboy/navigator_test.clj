@@ -209,7 +209,7 @@
             status (navigator/status result)
             user (navigator/resource result)]
 
-        (is (= 200 status))
+        (is (= nil status))
         (is (= (create-url base-url (format "/users/%s" "fred"))
               (:href result)))
         (is (= "Fred" (hal/get-property user :name))))))
@@ -239,7 +239,7 @@
             status (navigator/status result)
             user (navigator/resource result)]
 
-        (is (= 200 status))
+        (is (nil? status))
 
         (is (= "Fred" (hal/get-property user :name))))))
 
@@ -266,7 +266,7 @@
             status (navigator/status result)
             user (navigator/resource result)]
 
-        (is (= 200 status))
+        (is (nil? status))
 
         (is (= "Sue" (hal/get-property user :name))))))
 
@@ -286,6 +286,28 @@
                      (navigator/get :users))]
         (is (thrown? ExceptionInfo
               (navigator/focus result :user))))))
+
+  (testing "should throw an error if attempting to focus on collection"
+    (with-fake-http
+      (concat
+        (stubs/on-discover
+          base-url
+          :users {:href      "/users{?admin}"
+                  :templated true})
+        (stubs/on-get
+          (create-url base-url "/users")
+          {:status 200
+           :body   (->
+                     (hal/new-resource "/users")
+                     (hal/add-resources
+                       :users (create-user "fred")
+                       :users (create-user "sue")
+                       :users (create-user "mary"))
+                     (json/resource->json))}))
+      (is (thrown? ExceptionInfo
+            (-> (navigator/discover base-url)
+              (navigator/get :users)
+              (navigator/focus :users))))))
 
   (testing "should be able to create resources in an API"
     (with-fake-http
