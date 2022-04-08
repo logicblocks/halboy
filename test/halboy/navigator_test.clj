@@ -189,6 +189,76 @@
         (is (= ["Fred" "Sue" "Mary"]
               (map #(hal/get-property % :name) users))))))
 
+  (testing "should be able to focus on embedded resource"
+    (with-fake-http
+      (concat
+        (stubs/on-discover
+          base-url
+          :users {:href      "/users{?admin}"
+                  :templated true})
+        (stubs/on-get
+          (create-url base-url "/users")
+          {:status 200
+           :body   (-> (hal/new-resource "/users")
+                     (hal/add-resources
+                       :user (create-user "fred"))
+                     (json/resource->json))}))
+      (let [result (-> (navigator/discover base-url)
+                     (navigator/get :users)
+                     (navigator/focus :user))
+            status (navigator/status result)
+            user (navigator/resource result)]
+
+        (is (= 200 status))
+
+        (is (= "Fred" (hal/get-property user :name))))))
+
+  (testing "should be able to focus on nested embedded resource"
+    (with-fake-http
+      (concat
+        (stubs/on-discover
+          base-url
+          :users {:href      "/users{?admin}"
+                  :templated true})
+        (stubs/on-get
+          (create-url base-url "/users")
+          {:status 200
+           :body   (->
+                     (hal/new-resource "/users")
+                     (hal/add-resource
+                       :users
+                       (hal/add-resource
+                         (hal/new-resource)
+                         :user
+                         (create-user "fred")))
+                     (json/resource->json))}))
+      (let [result (-> (navigator/discover base-url)
+                     (navigator/get :users)
+                     (navigator/focus [:users :user]))
+            status (navigator/status result)
+            user (navigator/resource result)]
+
+        (is (= 200 status))
+
+        (is (= "Fred" (hal/get-property user :name))))))
+
+  (testing "should throw an error when trying to get a resource which does not exist"
+    (with-fake-http
+      (concat
+        (stubs/on-discover
+          base-url
+          :users {:href      "/users{?admin}"
+                  :templated true})
+        (stubs/on-get
+          (create-url base-url "/users")
+          {:status 200
+           :body   (-> (hal/new-resource "/users")
+                     (json/resource->json))}))
+      (let [result (-> (navigator/discover base-url)
+                     (navigator/get :users))]
+        (is (thrown? ExceptionInfo
+              (navigator/focus result :user))))))
+
   (testing "should be able to create resources in an API"
     (with-fake-http
       (concat
