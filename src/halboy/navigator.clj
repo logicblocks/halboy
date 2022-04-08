@@ -284,6 +284,16 @@
           (rest remaining-keys))
         result))))
 
+(defn- focused-resource->Navigator
+  [navigator resource]
+  (let [self-link (hal/get-href resource :self)
+        resume-from (if (url/absolute? self-link)
+                      self-link
+                      (resolve-absolute-href navigator self-link))]
+    (resource->Navigator
+      resource
+      {:resume-from resume-from})))
+
 (defn focus
   "Focuses navigator on embedded resource."
   [navigator key-or-keys]
@@ -292,7 +302,7 @@
                            (focus-key resource key-or-keys)
                            (focus-recursive resource key-or-keys))]
     (if (instance? Resource focused-resource)
-      (resource->Navigator focused-resource {})
+      (focused-resource->Navigator navigator focused-resource)
       (throw (ex-info (format "Focusing must result in a single resource, resulted in %s"
                         (type focused-resource))
                {:resource resource})))))

@@ -214,6 +214,32 @@
               (:href result)))
         (is (= "Fred" (hal/get-property user :name))))))
 
+  (testing "should be able to focus on embedded resource with relative self link"
+    (with-fake-http
+      (concat
+        (stubs/on-discover
+          base-url
+          :users {:href      "/users{?admin}"
+                  :templated true})
+        (stubs/on-get
+          (create-url base-url "/users")
+          {:status 200
+           :body   (-> (hal/new-resource "/users")
+                     (hal/add-resources
+                       :user (-> (hal/new-resource "/users/fred")
+                               (hal/add-property :name "Fred")))
+                     (json/resource->json))}))
+      (let [result (-> (navigator/discover base-url)
+                     (navigator/get :users)
+                     (navigator/focus :user))
+            status (navigator/status result)
+            user (navigator/resource result)]
+
+        (is (= nil status))
+        (is (= (create-url base-url (format "/users/%s" "fred"))
+              (:href result)))
+        (is (= "Fred" (hal/get-property user :name))))))
+
   (testing "should be able to focus on nested embedded resource"
     (with-fake-http
       (concat
