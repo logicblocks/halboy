@@ -125,7 +125,7 @@ using any of the methods above.
 (require '[halboy.navigator :as navigator])
 
 ; GET / - 200 OK
-; {
+;{
 ;  "_links": {
 ;    "self": {
 ;      "href": "/"
@@ -139,6 +139,25 @@ using any of the methods above.
 ;    }
 ;  }
 ;}
+;
+; GET /users - 200 OK
+;{
+;  "_links": {
+;    "self": {
+;      "href": "/users"
+;    },
+;    "_embedded": {
+;      "users": [{
+;        "_links": {
+;          "self": {
+;            "href": "/users/rob"
+;          },
+;          "id": "rob"
+;        }
+;      }]
+;    }
+;  }
+;}
 
 (def users-result
      (-> (navigator/discover "https://api.example.com/")
@@ -149,6 +168,11 @@ using any of the methods above.
 
 (navigator/location users-result)
 ; "https://api.example.com/users"
+
+(-> (navigator/focus users-result [:users 0])
+    (navigator/resource)
+    (hal/get-property :id))
+; "rob"
 
 (-> (navigator/discover "https://api.example.com/")
     (navigator/get :user {:id "rob"})
