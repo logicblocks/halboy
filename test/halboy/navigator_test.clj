@@ -13,13 +13,49 @@
 (def base-url "https://service.example.com")
 (defn- create-url [base-url resource]
   (-> (URL. base-url)
-    (URL. resource)
-    (.toString)))
+      (URL. resource)
+      (.toString)))
 
 (defn- create-user [name]
   (-> (hal/new-resource)
-    (hal/add-link :self {:href (create-url base-url (format "/users/%s" name))})
-    (hal/add-property :name (capitalize name))))
+      (hal/add-link :self {:href (create-url base-url (format "/users/%s" name))})
+      (hal/add-property :name (capitalize name))))
+
+(navigator/get navigator)
+
+; {
+;   _links: {
+;     things: [
+;       {:href asdf},
+;       {:href asdf},
+;     ]
+;   }
+; }
+
+(-> (navigator/discover "whatever")
+    (navigator/get :customer {123})
+    (navigator/get [:addresses 0])
+    (navigator/get :deliveries))
+
+(navigator/converse
+  navigator
+  [{:get :customer}
+   {:get [:addresses 0]}
+   {:get :deliveries}
+   {:post :self {:order 123}}])
+
+(navigator/get navigator :things)
+(navigator/get navigator [:things 0])
+
+(navigator/focus navigator :customer)
+(navigator/focus navigator [:customer 0 :address])
+
+
+(navigator/dive navigator [:customer 0 :address])
+(navigator/inspect navigator [:customer 0 :address])
+(navigator/traverse navigator [:customer 0 :address])
+(navigator/step-into navigator [:customer 0 :address])
+(navigator/step navigator [:customer 0 :address])
 
 (deftest halboy-navigator
   (testing "should be able to retrieve the settings"
@@ -29,7 +65,7 @@
         :users {:href      "/users{?admin}"
                 :templated true})
       (let [options (-> (navigator/discover base-url)
-                      (navigator/settings))]
+                        (navigator/settings))]
         (is (true? (:follow-redirects options)))
         (is (empty? (:headers options)))
         (is (not (nil? (:client options)))))))
@@ -65,21 +101,21 @@
           (create-url base-url "/users")
           {:status 200
            :body   (-> (hal/new-resource "/users")
-                     (hal/add-resources
-                       :users (create-user "fred")
-                       :users (create-user "sue")
-                       :users (create-user "mary"))
-                     (json/resource->json))}))
+                       (hal/add-resources
+                         :users (create-user "fred")
+                         :users (create-user "sue")
+                         :users (create-user "mary"))
+                       (json/resource->json))}))
       (let [result (-> (navigator/discover base-url)
-                     (navigator/get :users))
+                       (navigator/get :users))
             status (navigator/status result)
             users (-> (navigator/resource result)
-                    (hal/get-resource :users))]
+                      (hal/get-resource :users))]
 
         (is (= 200 status))
 
         (is (= ["Fred" "Sue" "Mary"]
-              (map #(hal/get-property % :name) users))))))
+               (map #(hal/get-property % :name) users))))))
 
   (testing "should throw an error when trying to get a link which does not exist"
     (with-fake-http
@@ -88,7 +124,7 @@
             ExceptionInfo
             #"Attempting to follow a link which does not exist"
             (-> (navigator/discover base-url)
-              (navigator/get :users))))))
+                (navigator/get :users))))))
 
   (testing "should throw an error when the response is not JSON"
     (with-fake-http
@@ -105,7 +141,7 @@
             ExceptionInfo
             #"Response body was not valid JSON"
             (-> (navigator/discover base-url)
-              (navigator/get :users))))))
+                (navigator/get :users))))))
 
   (testing "should be able to navigate through links with query params"
     (with-fake-http
@@ -118,21 +154,21 @@
           (create-url base-url "/users") {:admin "true"}
           {:status 200
            :body   (-> (hal/new-resource "/users")
-                     (hal/add-resources
-                       :users (create-user "fred")
-                       :users (create-user "sue")
-                       :users (create-user "mary"))
-                     (json/resource->json))}))
+                       (hal/add-resources
+                         :users (create-user "fred")
+                         :users (create-user "sue")
+                         :users (create-user "mary"))
+                       (json/resource->json))}))
       (let [result (-> (navigator/discover base-url)
-                     (navigator/get :users {:admin true}))
+                       (navigator/get :users {:admin true}))
             status (navigator/status result)
             users (-> (navigator/resource result)
-                    (hal/get-resource :users))]
+                      (hal/get-resource :users))]
 
         (is (= 200 status))
 
         (is (= ["Fred" "Sue" "Mary"]
-              (map #(hal/get-property % :name) users))))))
+               (map #(hal/get-property % :name) users))))))
 
   (testing "should be able to navigate through links with multiple query params"
     (with-fake-http
@@ -146,21 +182,21 @@
                                           :owner "false"}
           {:status 200
            :body   (-> (hal/new-resource "/users")
-                     (hal/add-resources
-                       :users (create-user "fred")
-                       :users (create-user "sue"))
-                     (json/resource->json))}))
+                       (hal/add-resources
+                         :users (create-user "fred")
+                         :users (create-user "sue"))
+                       (json/resource->json))}))
       (let [result (-> (navigator/discover base-url)
-                     (navigator/get :users {:admin true
-                                            :owner false}))
+                       (navigator/get :users {:admin true
+                                              :owner false}))
             status (navigator/status result)
             users (-> (navigator/resource result)
-                    (hal/get-resource :users))]
+                      (hal/get-resource :users))]
 
         (is (= 200 status))
 
         (is (= ["Fred" "Sue"]
-              (map #(hal/get-property % :name) users))))))
+               (map #(hal/get-property % :name) users))))))
 
   (testing "should be able to navigate with a mixture of template and query params"
     (with-fake-http
@@ -173,21 +209,21 @@
           (create-url base-url "/users/thomas/friends") {:mutual "true"}
           {:status 200
            :body   (-> (hal/new-resource "/users/thomas/friends")
-                     (hal/add-resources
-                       :users (create-user "fred")
-                       :users (create-user "sue")
-                       :users (create-user "mary"))
-                     (json/resource->json))}))
+                       (hal/add-resources
+                         :users (create-user "fred")
+                         :users (create-user "sue")
+                         :users (create-user "mary"))
+                       (json/resource->json))}))
       (let [result (-> (navigator/discover base-url)
-                     (navigator/get :friends {:id "thomas" :mutual true}))
+                       (navigator/get :friends {:id "thomas" :mutual true}))
             status (navigator/status result)
             users (-> (navigator/resource result)
-                    (hal/get-resource :users))]
+                      (hal/get-resource :users))]
 
         (is (= 200 status))
 
         (is (= ["Fred" "Sue" "Mary"]
-              (map #(hal/get-property % :name) users))))))
+               (map #(hal/get-property % :name) users))))))
 
   (testing "should be able to create resources in an API"
     (with-fake-http
@@ -203,10 +239,10 @@
           (create-url base-url "/users/thomas")
           {:status 200
            :body   (-> (hal/new-resource "/users/thomas")
-                     (hal/add-property :name "Thomas")
-                     (json/resource->json))}))
+                       (hal/add-property :name "Thomas")
+                       (json/resource->json))}))
       (let [result (-> (navigator/discover base-url)
-                     (navigator/post :users {:name "Thomas"}))
+                       (navigator/post :users {:name "Thomas"}))
             status (navigator/status result)
             new-user (navigator/resource result)]
 
@@ -224,7 +260,7 @@
           (create-url base-url "/users/thomas")
           {:status 204}))
       (let [result (-> (navigator/discover base-url)
-                     (navigator/delete :user {:id "thomas"}))
+                       (navigator/delete :user {:id "thomas"}))
             status (navigator/status result)]
         (is (= 204 status)))))
 
@@ -243,11 +279,11 @@
           (create-url base-url "/users/thomas")
           {:status 200
            :body   (-> (hal/new-resource "/users/thomas")
-                     (hal/add-property :name "Thomas")
-                     (hal/add-property :surname "Svensson")
-                     (json/resource->json))}))
+                       (hal/add-property :name "Thomas")
+                       (hal/add-property :surname "Svensson")
+                       (json/resource->json))}))
       (let [result (-> (navigator/discover base-url)
-                     (navigator/patch :user {:id "thomas"} {:surname "Svensson"}))
+                       (navigator/patch :user {:id "thomas"} {:surname "Svensson"}))
             status (navigator/status result)
             new-user (navigator/resource result)]
 
@@ -270,11 +306,11 @@
           (create-url base-url "/users/thomas")
           {:status 200
            :body   (-> (hal/new-resource)
-                     (hal/add-link :self "/users/thomas")
-                     (hal/add-property :name "Thomas")
-                     (json/resource->json))}))
+                       (hal/add-link :self "/users/thomas")
+                       (hal/add-property :name "Thomas")
+                       (json/resource->json))}))
       (let [result (-> (navigator/discover base-url)
-                     (navigator/post :users {:name "Thomas"}))
+                       (navigator/post :users {:name "Thomas"}))
             status (navigator/status result)
             new-user (navigator/resource result)]
 
@@ -292,7 +328,7 @@
           (create-url base-url "/users") {:name "thomas"}
           {:status 204}))
       (let [result (-> (navigator/discover base-url)
-                     (navigator/delete :users {:name "thomas"}))
+                       (navigator/delete :users {:name "thomas"}))
             status (navigator/status result)]
         (is (= 204 status)))))
 
@@ -311,10 +347,10 @@
           (create-url base-url "/users/thomas/items/1")
           {:status 200
            :body   (-> (hal/new-resource "/users/thomas/items/1")
-                     (hal/add-property :name "Sponge")
-                     (json/resource->json))}))
+                       (hal/add-property :name "Sponge")
+                       (json/resource->json))}))
       (let [result (-> (navigator/discover base-url)
-                     (navigator/post :useritems {:id "thomas"} {:name "Sponge"}))
+                       (navigator/post :useritems {:id "thomas"} {:name "Sponge"}))
             status (navigator/status result)
             new-item (navigator/resource result)]
 
@@ -333,8 +369,8 @@
           {:name "Thomas"}
           {:status 400}))
       (let [status (-> (navigator/discover base-url)
-                     (navigator/post :users {:name "Thomas"})
-                     (navigator/status))]
+                       (navigator/post :users {:name "Thomas"})
+                       (navigator/status))]
         (is (= 400 status)))))
 
   (testing "should not follow location headers when the options say not to"
@@ -349,13 +385,13 @@
           {:name "Thomas"}
           "/users/thomas"))
       (let [result (-> (navigator/discover base-url {:follow-redirects false})
-                     (navigator/post :users {:name "Thomas"}))
+                       (navigator/post :users {:name "Thomas"}))
             status (navigator/status result)]
 
         (is (= 201 status))
 
         (is (= "/users/thomas"
-              (navigator/get-header result :location))))))
+               (navigator/get-header result :location))))))
 
   (testing "should be able to continue the conversation even if we do not follow redirects"
     (with-fake-http
@@ -371,11 +407,11 @@
           (create-url base-url "/users/thomas")
           {:status 200
            :body   (-> (hal/new-resource "/users/thomas")
-                     (hal/add-property :name "Thomas")
-                     (json/resource->json))}))
+                       (hal/add-property :name "Thomas")
+                       (json/resource->json))}))
       (let [result (-> (navigator/discover base-url {:follow-redirects false})
-                     (navigator/post :users {:name "Thomas"})
-                     (navigator/follow-redirect))
+                       (navigator/post :users {:name "Thomas"})
+                       (navigator/follow-redirect))
             status (navigator/status result)
             new-user (navigator/resource result)]
 
@@ -394,9 +430,9 @@
           {:status  201
            :headers {}}))
       (is (thrown? ExceptionInfo
-            (-> (navigator/discover base-url {:follow-redirects false})
-              (navigator/post :users {:name "Thomas"})
-              (navigator/follow-redirect))))))
+                   (-> (navigator/discover base-url {:follow-redirects false})
+                              (navigator/post :users {:name "Thomas"})
+                              (navigator/follow-redirect))))))
 
   (testing "should be able to put to a resource"
     (with-fake-http
@@ -410,10 +446,10 @@
           {:name "Thomas"}
           {:status 200
            :body   (-> (hal/new-resource "/users/thomas")
-                     (hal/add-property :name "Thomas")
-                     (json/resource->json))}))
+                       (hal/add-property :name "Thomas")
+                       (json/resource->json))}))
       (let [result (-> (navigator/discover base-url)
-                     (navigator/put :user {:id "thomas"} {:name "Thomas"}))
+                       (navigator/put :user {:id "thomas"} {:name "Thomas"}))
             status (navigator/status result)
             user (navigator/resource result)]
 
@@ -435,10 +471,10 @@
           (create-url base-url "/users/thomas")
           {:status 200
            :body   (-> (hal/new-resource "/users/thomas")
-                     (hal/add-property :name "Thomas")
-                     (json/resource->json))}))
+                       (hal/add-property :name "Thomas")
+                       (json/resource->json))}))
       (let [result (-> (navigator/discover base-url)
-                     (navigator/put :user {:id "thomas"} {:name "Thomas"}))
+                       (navigator/put :user {:id "thomas"} {:name "Thomas"}))
             status (navigator/status result)
             user (navigator/resource result)]
 
@@ -456,7 +492,7 @@
           (create-url base-url "/users/thomas")
           {:status 200}))
       (let [result (-> (navigator/discover base-url)
-                     (navigator/head :user {:id "thomas"}))
+                       (navigator/head :user {:id "thomas"}))
             status (navigator/status result)]
 
         (is (= 200 status)))))
@@ -497,8 +533,8 @@
             {:name "Thomas"}
             {:status 201}))
         (let [result (-> (navigator/discover base-url {:follow-redirects false})
-                       (navigator/set-header "X-resource-location" resource-url)
-                       (navigator/post :users {:name "Thomas"}))
+                         (navigator/set-header "X-resource-location" resource-url)
+                         (navigator/post :users {:name "Thomas"}))
               status (navigator/status result)]
 
           (is (= 201 status))))))
@@ -509,24 +545,24 @@
         (create-url base-url "/users")
         {:status 200
          :body   (-> (hal/new-resource "/users")
-                   (hal/add-resources
-                     :users [(create-user "fred")
-                             (create-user "sue")
-                             (create-user "mary")])
-                   (json/resource->json))})
+                     (hal/add-resources
+                       :users [(create-user "fred")
+                               (create-user "sue")
+                               (create-user "mary")])
+                     (json/resource->json))})
       (let [resource (-> (hal/new-resource base-url)
-                       (hal/add-link :users {:href      "/users{?admin}"
-                                             :templated true}))
+                         (hal/add-link :users {:href      "/users{?admin}"
+                                               :templated true}))
             result (-> (navigator/resume resource)
-                     (navigator/get :users))
+                       (navigator/get :users))
             status (navigator/status result)
             users (-> (navigator/resource result)
-                    (hal/get-resource :users))]
+                      (hal/get-resource :users))]
 
         (is (= 200 status))
 
         (is (= ["Fred" "Sue" "Mary"]
-              (map #(hal/get-property % :name) users))))))
+               (map #(hal/get-property % :name) users))))))
 
   (testing "should be able to hint at the location when the self link is not absolute"
     (with-fake-http
@@ -534,34 +570,34 @@
         (create-url base-url "/users")
         {:status 200
          :body   (-> (hal/new-resource "/users")
-                   (hal/add-resources
-                     :users [(create-user "fred")
-                             (create-user "sue")
-                             (create-user "mary")])
-                   (json/resource->json))})
+                     (hal/add-resources
+                       :users [(create-user "fred")
+                               (create-user "sue")
+                               (create-user "mary")])
+                     (json/resource->json))})
       (let [resource (-> (hal/new-resource "/")
-                       (hal/add-link :users {:href      "/users{?admin}"
-                                             :templated true}))
+                         (hal/add-link :users {:href      "/users{?admin}"
+                                               :templated true}))
             result (-> (navigator/resume resource {:resume-from base-url})
-                     (navigator/get :users))
+                       (navigator/get :users))
             status (navigator/status result)
             users (-> (navigator/resource result)
-                    (hal/get-resource :users))]
+                      (hal/get-resource :users))]
 
         (is (= 200 status))
 
         (is (= ["Fred" "Sue" "Mary"]
-              (map #(hal/get-property % :name) users))))))
+               (map #(hal/get-property % :name) users))))))
 
   (testing "should throw an error when trying to resume a conversation
           with a resource that lacks a self link"
     (is (thrown? ExceptionInfo
-          (navigator/resume
-            (hal/new-resource)))))
+                 (navigator/resume
+                   (hal/new-resource)))))
 
   (testing "should throw an error when trying to resume a conversation
           with a resource with a relative self link, and no :resume-from option"
     (is (thrown? ExceptionInfo
-          (navigator/resume
-            (-> (hal/new-resource)
-              (hal/add-href :self "/users")))))))
+                 (navigator/resume
+                   (-> (hal/new-resource)
+                              (hal/add-href :self "/users")))))))
