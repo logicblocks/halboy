@@ -266,10 +266,16 @@
          query-params (:query-params resolved-link)]
      (delete-url href query-params (:settings navigator)))))
 
+(defn- list-or-vector?
+  [item]
+  (or (list? item) (vector? item)))
+
 (defn- focus-key
   [navigator key]
   (let [resource (resource navigator)
-        embedded-resource (hal/get-resource resource key)]
+        embedded-resource (if (keyword? key)
+                            (hal/get-resource resource key)
+                            (nth resource key))]
     (if embedded-resource
       (assoc navigator :resource embedded-resource)
       (throw (ex-info "Attempting to focus on embedded resource which does not exist"
@@ -289,9 +295,9 @@
 (defn focus
   "Focuses navigator on embedded resource."
   [navigator key-or-keys]
-  (if (keyword key-or-keys)
-    (focus-key navigator key-or-keys)
-    (focus-recursive navigator key-or-keys)))
+  (if (list-or-vector? key-or-keys)
+    (focus-recursive navigator key-or-keys)
+    (focus-key navigator key-or-keys)))
 
 (defn follow-redirect
   "Fetches the url of the location header"

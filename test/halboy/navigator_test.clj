@@ -242,7 +242,34 @@
 
         (is (= "Fred" (hal/get-property user :name))))))
 
-  (testing "should throw an error when trying to get a resource which does not exist"
+  (testing "should be able to focus on embedded resource in list"
+    (with-fake-http
+      (concat
+        (stubs/on-discover
+          base-url
+          :users {:href      "/users{?admin}"
+                  :templated true})
+        (stubs/on-get
+          (create-url base-url "/users")
+          {:status 200
+           :body   (->
+                     (hal/new-resource "/users")
+                     (hal/add-resources
+                       :users (create-user "fred")
+                       :users (create-user "sue")
+                       :users (create-user "mary"))
+                     (json/resource->json))}))
+      (let [result (-> (navigator/discover base-url)
+                     (navigator/get :users)
+                     (navigator/focus [:users 1]))
+            status (navigator/status result)
+            user (navigator/resource result)]
+
+        (is (= 200 status))
+
+        (is (= "Sue" (hal/get-property user :name))))))
+
+  (testing "should throw an error when trying to focus on resource which does not exist"
     (with-fake-http
       (concat
         (stubs/on-discover
