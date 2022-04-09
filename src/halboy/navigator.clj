@@ -8,7 +8,8 @@
             [halboy.http.protocol :as http]
             [halboy.params :as params]
             [halboy.argutils :refer [deep-merge]]
-            [halboy.url :as url]))
+            [halboy.url :as url])
+  (:import (halboy.resource Resource)))
 
 (def default-settings
   {:client           (client/new-http-client)
@@ -265,6 +266,46 @@
          href (resolve-absolute-href navigator (:href resolved-link))
          query-params (:query-params resolved-link)]
      (delete-url href query-params (:settings navigator)))))
+
+(defn- focus-key
+  [resource key]
+  (if (keyword? key)
+    (hal/get-resource resource key)
+    (nth resource key)))
+
+(defn- focus-recursive
+  [resource keys]
+  (loop [result resource
+         remaining-keys keys]
+    (let [key (first remaining-keys)]
+      (if key
+        (recur
+          (focus-key result key)
+          (rest remaining-keys))
+        result))))
+
+(defn- focused-resource->Navigator
+  [navigator resource]
+  (let [self-link (hal/get-href resource :self)
+        resume-from (if (url/absolute? self-link)
+                      self-link
+                      (resolve-absolute-href navigator self-link))]
+    (resource->Navigator
+      resource
+      {:resume-from resume-from})))
+
+(defn focus
+  "Focuses navigator on embedded resource."
+  [navigator key-or-keys]
+  (let [resource (resource navigator)
+        focused-resource (if (keyword key-or-keys)
+                           (focus-key resource key-or-keys)
+                           (focus-recursive resource key-or-keys))]
+    (if (instance? Resource focused-resource)
+      (focused-resource->Navigator navigator focused-resource)
+      (throw (ex-info (format "Focusing must result in a single resource, resulted in %s"
+                        (type focused-resource))
+               {:resource resource})))))
 
 (defn follow-redirect
   "Fetches the url of the location header"

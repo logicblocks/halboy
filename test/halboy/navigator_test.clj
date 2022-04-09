@@ -189,6 +189,152 @@
         (is (= ["Fred" "Sue" "Mary"]
               (map #(hal/get-property % :name) users))))))
 
+  (testing "should be able to focus on embedded resource"
+    (with-fake-http
+      (concat
+        (stubs/on-discover
+          base-url
+          :users {:href      "/users{?admin}"
+                  :templated true})
+        (stubs/on-get
+          (create-url base-url "/users")
+          {:status 200
+           :body   (-> (hal/new-resource "/users")
+                     (hal/add-resources
+                       :user (create-user "fred"))
+                     (json/resource->json))}))
+      (let [result (-> (navigator/discover base-url)
+                     (navigator/get :users)
+                     (navigator/focus :user))
+            status (navigator/status result)
+            user (navigator/resource result)]
+
+        (is (= nil status))
+        (is (= (create-url base-url (format "/users/%s" "fred"))
+              (:href result)))
+        (is (= "Fred" (hal/get-property user :name))))))
+
+  (testing "should be able to focus on embedded resource with relative self link"
+    (with-fake-http
+      (concat
+        (stubs/on-discover
+          base-url
+          :users {:href      "/users{?admin}"
+                  :templated true})
+        (stubs/on-get
+          (create-url base-url "/users")
+          {:status 200
+           :body   (-> (hal/new-resource "/users")
+                     (hal/add-resources
+                       :user (-> (hal/new-resource "/users/fred")
+                               (hal/add-property :name "Fred")))
+                     (json/resource->json))}))
+      (let [result (-> (navigator/discover base-url)
+                     (navigator/get :users)
+                     (navigator/focus :user))
+            status (navigator/status result)
+            user (navigator/resource result)]
+
+        (is (= nil status))
+        (is (= (create-url base-url (format "/users/%s" "fred"))
+              (:href result)))
+        (is (= "Fred" (hal/get-property user :name))))))
+
+  (testing "should be able to focus on nested embedded resource"
+    (with-fake-http
+      (concat
+        (stubs/on-discover
+          base-url
+          :users {:href      "/users{?admin}"
+                  :templated true})
+        (stubs/on-get
+          (create-url base-url "/users")
+          {:status 200
+           :body   (->
+                     (hal/new-resource "/users")
+                     (hal/add-resource
+                       :users
+                       (hal/add-resource
+                         (hal/new-resource)
+                         :user
+                         (create-user "fred")))
+                     (json/resource->json))}))
+      (let [result (-> (navigator/discover base-url)
+                     (navigator/get :users)
+                     (navigator/focus [:users :user]))
+            status (navigator/status result)
+            user (navigator/resource result)]
+
+        (is (nil? status))
+
+        (is (= "Fred" (hal/get-property user :name))))))
+
+  (testing "should be able to focus on embedded resource in list"
+    (with-fake-http
+      (concat
+        (stubs/on-discover
+          base-url
+          :users {:href      "/users{?admin}"
+                  :templated true})
+        (stubs/on-get
+          (create-url base-url "/users")
+          {:status 200
+           :body   (->
+                     (hal/new-resource "/users")
+                     (hal/add-resources
+                       :users (create-user "fred")
+                       :users (create-user "sue")
+                       :users (create-user "mary"))
+                     (json/resource->json))}))
+      (let [result (-> (navigator/discover base-url)
+                     (navigator/get :users)
+                     (navigator/focus [:users 1]))
+            status (navigator/status result)
+            user (navigator/resource result)]
+
+        (is (nil? status))
+
+        (is (= "Sue" (hal/get-property user :name))))))
+
+  (testing "should throw an error when trying to focus on resource which does not exist"
+    (with-fake-http
+      (concat
+        (stubs/on-discover
+          base-url
+          :users {:href      "/users{?admin}"
+                  :templated true})
+        (stubs/on-get
+          (create-url base-url "/users")
+          {:status 200
+           :body   (-> (hal/new-resource "/users")
+                     (json/resource->json))}))
+      (let [result (-> (navigator/discover base-url)
+                     (navigator/get :users))]
+        (is (thrown? ExceptionInfo
+              (navigator/focus result :user))))))
+
+  (testing "should throw an error if attempting to focus on collection"
+    (with-fake-http
+      (concat
+        (stubs/on-discover
+          base-url
+          :users {:href      "/users{?admin}"
+                  :templated true})
+        (stubs/on-get
+          (create-url base-url "/users")
+          {:status 200
+           :body   (->
+                     (hal/new-resource "/users")
+                     (hal/add-resources
+                       :users (create-user "fred")
+                       :users (create-user "sue")
+                       :users (create-user "mary"))
+                     (json/resource->json))}))
+      (is (thrown? ExceptionInfo
+            (-> (navigator/discover base-url)
+              (navigator/get :users)
+              (navigator/focus :users))))))
+
   (testing "should be able to create resources in an API"
     (with-fake-http
       (concat
