@@ -1,8 +1,8 @@
 (ns halboy.http.default-test
-  (:use org.httpkit.fake)
   (:require [clojure.test :refer :all]
             [halboy.http.default :as http-client]
-            [halboy.http.protocol :as http]))
+            [halboy.http.protocol :as http]
+            [org.httpkit.fake :refer :all]))
 
 (def base-url "https://service.example.com")
 
@@ -29,5 +29,4 @@
                                    :url     "https://service.example.com"}
                          :status  201}
                :status  201
-               :url     "https://service.example.com"}
-              ))))))
+               :url     "https://service.example.com"}))))))

@@ -2,9 +2,7 @@
   (:require [halboy.argutils :refer [apply-pairs-or-map]]))
 
 (defn- create-or-append [l r]
-  (if (not (nil? l))
-    (flatten [l r])
-    r))
+  (if-not (nil? l) (flatten [l r]) r))
 
 (defn- ensure-link [x]
   (if (string? x)
@@ -63,8 +61,7 @@
   [resource rel m]
   (if-let [m (ensure-link m)]
     (let [existing-links (:links resource)
-          updated-link (-> (get existing-links rel)
-                         (create-or-append m))]
+          updated-link (create-or-append (get existing-links rel) m)]
       (->Resource
         (assoc existing-links rel updated-link)
         (:embedded resource)
@@ -86,8 +83,7 @@
   [resource key r]
   (if (some? r)
     (let [existing-resources (:embedded resource)
-          updated-resource (-> (get existing-resources key)
-                             (create-or-append r))]
+          updated-resource (create-or-append (get existing-resources key) r)]
       (->Resource
         (:links resource)
         (assoc existing-resources key updated-resource)
@@ -123,5 +119,4 @@
   ([]
    (->Resource {} {} {}))
   ([self]
-   (-> (->Resource {} {} {})
-     (add-link :self self))))
+   (add-link (->Resource {} {} {}) :self self)))

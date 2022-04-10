@@ -1,13 +1,13 @@
 (ns halboy.params
   (:require
-    [clojure.walk :refer [postwalk]]
-    [clojure.set :refer [difference]]
+   [clojure.walk :refer [postwalk]]
+   [clojure.set :refer [difference]]
 
-    [medley.core :refer [map-vals]]
+   [medley.core :refer [map-vals]]
 
-    [uritemplate-clj.core :refer [uritemplate tokenize parse-token]]
+   [uritemplate-clj.core :refer [uritemplate tokenize parse-token]]
 
-    [org.bovinegenius.exploding-fish :as uri]))
+   [org.bovinegenius.exploding-fish :as uri]))
 
 (defn- stringify-params [params]
   (let [f (fn [x]
@@ -48,7 +48,7 @@
 (defn- determine-full-query-params
   [params remaining-param-names expanded-uri-query-params]
   (merge (select-keys params remaining-param-names)
-         expanded-uri-query-params))
+    expanded-uri-query-params))
 
 (defn build-query [templated-uri params]
   (let [stringified-params (stringify-params params)

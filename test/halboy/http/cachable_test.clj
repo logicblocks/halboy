@@ -1,9 +1,9 @@
 (ns halboy.http.cachable-test
-  (:use org.httpkit.fake)
   (:require [clojure.test :refer :all]
             [halboy.http.cachable :as cachable-http-client]
             [clojure.core.cache :as cache]
-            [halboy.http.protocol :as http]))
+            [halboy.http.protocol :as http]
+            [org.httpkit.fake :refer :all]))
 (def base-url "https://service.example.com")
 (deftest halboy-http
   (testing "cachableHttpClient without cached data"
@@ -29,8 +29,7 @@
                                    :url     "https://service.example.com"}
                          :status  201}
                :status  201
-               :url     "https://service.example.com"}
-              )))))
+               :url     "https://service.example.com"})))))
   (testing "cachableHttpClient with cached data"
     (let [request {:url    base-url
                    :method :get}
@@ -40,13 +39,10 @@
                                     "Accept"       "application/hal+json"},
                           :url     base-url,
                           :method  :get}
-                         {:cached true}
-                         }
+                         {:cached true}}
                         :ttl 2000))
-          cached-client (cachable-http-client/new-http-client cache)
-          ]
+          cached-client (cachable-http-client/new-http-client cache)]
       (is (=
             (http/exchange cached-client request)
             {:raw {:cached true}
-             :url nil}
-            )))))
+             :url nil})))))

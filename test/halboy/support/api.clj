@@ -12,8 +12,8 @@
   [{:method :get :url url}
    {:status 200
     :body   (-> (new-resource)
-                ((partial apply add-links) kvs)
-                resource->json)}])
+              ((partial apply add-links) kvs)
+              resource->json)}])
 
 (defn on-head
   ([url response]
@@ -107,4 +107,3 @@
     :url     url
     :headers headers}
    response])
-

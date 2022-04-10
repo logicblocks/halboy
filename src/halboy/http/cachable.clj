@@ -1,11 +1,11 @@
 (ns halboy.http.cachable
   (:require
-    [clojure.walk :refer [stringify-keys keywordize-keys]]
-    [cheshire.core :as json]
-    [org.httpkit.client :as http]
-    [clojure.core.cache :as cache]
-    [halboy.argutils :refer [deep-merge]]
-    [halboy.http.protocol :as protocol])
+   [clojure.walk :refer [stringify-keys keywordize-keys]]
+   [cheshire.core :as json]
+   [org.httpkit.client :as http]
+   [clojure.core.cache :as cache]
+   [halboy.argutils :refer [deep-merge]]
+   [halboy.http.protocol :as protocol])
   (:import [com.fasterxml.jackson.core JsonParseException]))
 
 (def default-http-options
@@ -13,9 +13,9 @@
    :headers {"Content-Type" "application/json"
              "Accept"       "application/hal+json"}})
 
-(defn- update-if-present [m ks fn]
+(defn- update-if-present [m ks func]
   (if (get-in m ks)
-    (update-in m ks #(fn %))
+    (update-in m ks func)
     m))
 
 (defn http-method->fn [method]
@@ -58,21 +58,19 @@
   protocol/HttpClient
   (exchange [_ {:keys [url method] :as request}]
     (let [request (-> request
-                      (with-default-options)
-                      (with-transformed-params)
-                      (with-json-body))
+                    (with-default-options)
+                    (with-transformed-params)
+                    (with-json-body))
           http-fn (http-method->fn method)
           response (if (cache/has? @cache-store request)
                      (get (cache/hit @cache-store request) request)
                      (let [updated-cache (swap! cache-store #(cache/miss % request
-                                                                         @(http-fn url request)))]
-                       (get updated-cache request))
-                     )
-          ]
+                                                               @(http-fn url request)))]
+                       (get updated-cache request)))]
 
       (-> response
-          (parse-json-response)
-          (format-for-halboy)))))
+        (parse-json-response)
+        (format-for-halboy)))))
 
 (defn new-http-client
   ([]

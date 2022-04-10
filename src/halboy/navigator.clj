@@ -46,20 +46,20 @@
 (defn- get-resume-location [resource settings]
   (let [resume-from (:resume-from settings)
         self-link (hal/get-href resource :self)]
-    (if resume-from
+    (or
       resume-from
       (if (and self-link (url/absolute? self-link))
         self-link
         (throw
-          (ex-info "No :resume-from option, and self link not absolute"
+          (ex-info
+            "No :resume-from option, and self link not absolute"
             {:self-link-value self-link}))))))
 
 (defn- response->Navigator [response settings]
   (if (failed? response)
     (throw (build-error response))
     (let [current-url (:url response)
-          resource (-> (:body response)
-                     haljson/map->resource)]
+          resource (haljson/map->resource (:body response))]
       (->Navigator current-url settings response resource))))
 
 (defn- resource->Navigator
@@ -87,8 +87,7 @@
   (let [settings (deep-merge default-settings settings)
         request (deep-merge (:http settings) request)
         client (:client settings)]
-    (-> (http/exchange client request)
-      (response->Navigator settings))))
+    (response->Navigator (http/exchange client request) settings)))
 
 (defn- head-url
   ([url settings]
@@ -124,11 +123,9 @@
   (let [settings (deep-merge default-settings settings)
         request (deep-merge (:http settings) request)
         client (:client settings)
-        result (-> (http/exchange client request)
-                 (response->Navigator settings))]
+        result (response->Navigator (http/exchange client request) settings)]
     (if (follow-redirect? result)
-      (-> (extract-redirect-location result)
-        (get-url settings))
+      (get-url (extract-redirect-location result) settings)
       result)))
 
 (defn- post-url
@@ -187,8 +184,7 @@
 (defn status
   "Gets the status code from the last response from the navigator"
   [navigator]
-  (-> (response navigator)
-    :status))
+  (:status (response navigator)))
 
 (defn discover
   "Starts a conversation with an API. Use this on the discovery endpoint."
