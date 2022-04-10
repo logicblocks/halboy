@@ -68,11 +68,11 @@
   {:ns-exclude-regex [#"^user"]}
 
   :codox
-  {:namespaces  [#"^hype\."]
+  {:namespaces  [#"^halboy\."]
    :metadata    {:doc/format :markdown}
    :output-path "docs"
    :doc-paths   ["docs"]
-   :source-uri  "https://github.com/logicblocks/hype/blob/{version}/{filepath}#L{line}"}
+   :source-uri  "https://github.com/logicblocks/halboy/blob/{version}/{filepath}#L{line}"}
 
   :cljfmt {:indents ^:replace {#".*" [[:inner 0]]}}
 
