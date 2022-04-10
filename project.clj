@@ -2,7 +2,7 @@
   :description "a hypermedia parser and navigator"
   :license {:name "MIT License"
             :url  "https://opensource.org/licenses/MIT"}
-  :url "https://github.com/jimmythompson/halboy"
+  :url "https://github.com/logicblocks/halboy"
   :dependencies [[org.clojure/clojure "1.11.1"]
                  [http-kit "2.5.3"]
                  [cheshire "5.10.2"]
