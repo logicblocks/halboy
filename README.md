@@ -215,10 +215,11 @@ or a different TTL.
 (require '[clojure.core.cache :as cache])
 
 (def in-memory-cache (atom (cache/ttl-cache-factory {} :ttl 3600000)))
-  (navigator/discover "https://api.example.com"
-     {:client           (halboy.http.cachable/new-http-client in-memory-cache)
-      :follow-redirects true
-      :http             {:headers {}}})
+  
+(navigator/discover "https://api.example.com"
+  {:client           (halboy.http.cachable/new-http-client in-memory-cache)
+   :follow-redirects true
+   :http             {:headers {}}})
 ```
 #### HTTP settings
 
