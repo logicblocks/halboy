@@ -189,9 +189,11 @@
 (defn discover
   "Starts a conversation with an API. Use this on the discovery endpoint."
   ([href]
-   (discover href {}))
+   (discover href {} {}))
   ([href settings]
-   (get-url href settings)))
+   (discover href {} settings))
+  ([href params settings]
+   (get-url href params settings)))
 
 (defn resume
   "Resumes a conversation with an API. Your resource needs a self
