@@ -97,6 +97,7 @@ PLATFORMS
   arm64-darwin-20
   x86_64-darwin-19
   x86_64-darwin-20
+  x86_64-darwin-21
   x86_64-linux
 
 DEPENDENCIES
@@ -108,4 +109,4 @@ DEPENDENCIES
   rake_ssh (~> 0.4)
 
 BUNDLED WITH
-   2.2.30
+   2.3.25

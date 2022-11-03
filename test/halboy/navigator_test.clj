@@ -34,6 +34,37 @@
         (is (empty? (:headers options)))
         (is (not (nil? (:client options)))))))
 
+  (testing "should be able to discover"
+    (let [resource-path "/users/thomas"
+          resource-url (create-url base-url resource-path)]
+      (with-fake-http
+        (concat
+          (stubs/on-get
+            resource-url
+            {:status 200
+             :body   (-> (hal/new-resource resource-path)
+                       (json/resource->json))}))
+        (let [result (navigator/discover resource-url)
+              status (navigator/status result)]
+          (is (= 200 status))))))
+
+  (testing "should be able to discover with params"
+    (let [resource-path "/users/thomas"
+          resource-url (create-url base-url resource-path)]
+      (with-fake-http
+        (concat
+          (stubs/on-get
+            resource-url
+            {:exampleFlag true}
+            {:status 200
+             :body   (-> (hal/new-resource resource-path)
+                       (json/resource->json))}))
+        (let [result (navigator/discover resource-url
+                       {:exampleFlag true}
+                       {})
+              status (navigator/status result)]
+          (is (= 200 status))))))
+
   (testing "should be able to pass options to the HTTP client"
     (let [resource-url (create-url base-url "/users/thomas")]
       (with-fake-http
