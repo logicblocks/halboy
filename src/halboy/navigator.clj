@@ -33,7 +33,7 @@
 
 (defn- follow-redirect? [navigator]
   (and (= 201 (get-in navigator [:response :status]))
-    (get-in navigator [:settings :follow-redirects])))
+       (get-in navigator [:settings :follow-redirects])))
 
 (defn- extract-header [navigator header]
   (get-in navigator [:response :headers header]))
@@ -309,8 +309,8 @@
     (if (instance? Resource focused-resource)
       (focused-resource->Navigator navigator focused-resource)
       (throw (ex-info (format "Focusing must result in a single resource, resulted in %s"
-                        (type focused-resource))
-               {:resource resource})))))
+                              (type focused-resource))
+                      {:resource resource})))))
 
 (defn follow-redirect
   "Fetches the url of the location header"
@@ -319,9 +319,9 @@
     (if-not (nil? redirect-location)
       (get-url redirect-location (:settings navigator))
       (throw (ex-info "Attempting to follow a redirect without a location header"
-               {:headers  (get-in navigator [:response :headers])
-                :resource resource
-                :response (:response navigator)})))))
+                      {:headers  (get-in navigator [:response :headers])
+                       :resource resource
+                       :response (:response navigator)})))))
 
 (defn get-header
   "Retrieves a specified header from the response"

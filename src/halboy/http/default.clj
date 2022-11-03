@@ -1,10 +1,10 @@
 (ns halboy.http.default
   (:require
-   [clojure.walk :refer [stringify-keys keywordize-keys]]
-   [cheshire.core :as json]
-   [org.httpkit.client :as http]
-   [halboy.argutils :refer [deep-merge]]
-   [halboy.http.protocol :as protocol])
+    [clojure.walk :refer [stringify-keys keywordize-keys]]
+    [cheshire.core :as json]
+    [org.httpkit.client :as http]
+    [halboy.argutils :refer [deep-merge]]
+    [halboy.http.protocol :as protocol])
   (:import [com.fasterxml.jackson.core JsonParseException]))
 
 (def default-http-options
@@ -38,10 +38,10 @@
     (update-if-present
       response [:body]
       #(-> (json/parse-string %)
-         (keywordize-keys)))
+           (keywordize-keys)))
     (catch JsonParseException ex
       (assoc response
-        :error {:code :not-valid-json
+        :error {:code  :not-valid-json
                 :cause ex}))))
 
 (defn- with-transformed-params [m]
@@ -56,14 +56,14 @@
 (deftype DefaultHttpClient []
   protocol/HttpClient
   (exchange [_ {:keys [url method] :as request}]
-    (let [request #p (-> request
-                    (with-default-options)
-                    (with-transformed-params)
-                    (with-json-body))
+    (let [request (-> request
+                         (with-default-options)
+                         (with-transformed-params)
+                         (with-json-body))
           http-fn (http-method->fn method)]
       (-> @(http-fn url request)
-        (parse-json-response)
-        (format-for-halboy)))))
+          (parse-json-response)
+          (format-for-halboy)))))
 
 (defn new-http-client []
   (DefaultHttpClient.))
