@@ -54,6 +54,37 @@
               status (navigator/status result)]
           (is (= 204 status))))))
 
+  (testing "should be able to discover a resource"
+    (let [resource-path "/users/thomas"
+          resource-url (create-url base-url resource-path)]
+      (with-fake-http
+        (concat
+          (stubs/on-get
+            resource-url
+            {:status 200
+             :body   (-> (hal/new-resource resource-path)
+                         (json/resource->json))}))
+        (let [result (->
+                       (navigator/discover-resource resource-url))
+              status (navigator/status result)]
+          (is (= 200 status))))))
+
+  (testing "should be able to discover a resource with options"
+    (let [resource-path "/users/thomas"
+          resource-url (create-url base-url resource-path)]
+      (with-fake-http
+        (concat
+          (stubs/on-get
+            (str resource-url "?exampleFlag=true")
+            {:status 200
+             :body   (-> (hal/new-resource resource-path)
+                         (json/resource->json))}))
+        (let [result (->
+                       (navigator/discover-resource resource-url {:exampleFlag true}))
+              status (navigator/status result)]
+          (is (= 200 status))))))
+
+
   (testing "should be able to navigate through links in an API"
     (with-fake-http
       (concat

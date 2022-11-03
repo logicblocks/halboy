@@ -56,7 +56,7 @@
 (deftype DefaultHttpClient []
   protocol/HttpClient
   (exchange [_ {:keys [url method] :as request}]
-    (let [request (-> request
+    (let [request #p (-> request
                     (with-default-options)
                     (with-transformed-params)
                     (with-json-body))

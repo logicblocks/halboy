@@ -193,6 +193,15 @@
   ([href settings]
    (get-url href settings)))
 
+(defn discover-resource
+  "Starts a conversation with an API. Use this with a href pointing at a resource."
+  ([href]
+   (discover-resource href {} {}))
+  ([href settings]
+   (discover-resource href {} settings))
+  ([href params settings]
+   (get-url href params settings)))
+
 (defn resume
   "Resumes a conversation with an API. Your resource needs a self
   link for this to work. If your self link is not absolute, you
