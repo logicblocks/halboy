@@ -1,3 +1,9 @@
+## 6.1.0 (November 4th, 2022)
+
+IMPROVEMENTS:
+
+* `navigator/discover` now supports query params
+
 ## 4.0.0 (August 12th, 2018)
 
 BACKWARDS INCOMPATIBILITIES / NOTES:
