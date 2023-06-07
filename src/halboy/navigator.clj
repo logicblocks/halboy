@@ -125,7 +125,7 @@
     (if (follow-redirect? result)
       (if-not (nil? redirect-location)
         (get-url redirect-location settings)
-        (throw (ex-info "Attempting to follow a redirect on a resource response with no location (either the body didn't have a :url property or the location header was missing)"
+        (throw (ex-info "Attempting to follow a redirect without a location header"
                  {:headers  (get-in result [:response :headers])
                   :resource (:resource result)
                   :response (:response result)})))
