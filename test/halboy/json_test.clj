@@ -1,6 +1,6 @@
 (ns halboy.json-test
   (:require
-   [clojure.test :refer :all]
+   [clojure.test :refer [deftest testing is]]
    [halboy.resource :as hal]
    [halboy.json :as haljson]
    [cheshire.core :as json]))

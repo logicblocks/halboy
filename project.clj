@@ -4,27 +4,32 @@
             :url  "https://opensource.org/licenses/MIT"}
   :url "https://github.com/logicblocks/halboy"
   :dependencies [[org.clojure/clojure "1.11.1"]
-                 [http-kit "2.5.3"]
-                 [cheshire "5.10.2"]
-                 [medley "1.4.0"]
-                 [uritemplate-clj "1.3.0"]
                  [org.clojure/core.cache "1.0.225"]
+                 [org.clojure/core.rrb-vector "0.1.2"]
+
+                 [http-kit "2.6.0"]
+                 [clj-http "3.10.2"]
+
+                 [cheshire "5.11.0"]
+                 [medley "1.4.0"]
+                 [uritemplate-clj "1.3.1"]
                  [org.bovinegenius/exploding-fish "0.3.6"]]
   :plugins [[lein-cloverage "1.1.2"]
             [lein-shell "0.5.0"]
             [lein-ancient "0.6.15"]
             [lein-changelog "0.3.2"]
             [lein-cprint "1.3.3"]
-            [lein-eftest "0.5.9"]
+            [lein-eftest "0.6.0"]
             [lein-codox "0.10.7"]
             [lein-cljfmt "0.6.7"]
             [lein-kibit "0.1.8"]
             [lein-bikeshed "0.5.2"]
             [jonase/eastwood "0.3.11"]]
   :profiles {:shared
-             {:dependencies [[nrepl "0.9.0"]
+             {:dependencies [[nrepl "1.0.0"]
                              [http-kit.fake "0.2.2"]
-                             [eftest "0.5.9"]]}
+                             [clj-http-fake "1.0.3"]
+                             [eftest "0.6.0"]]}
 
              :test
              [:shared {:eftest {:multithread? false}}]
