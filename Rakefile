@@ -105,7 +105,7 @@ namespace :secrets do
   ]
 
   desc 'Provision all secrets.'
-  task provision: [:generate]
+  task provision: [:regenerate]
 
   desc 'Delete all secrets.'
   task :destroy do
