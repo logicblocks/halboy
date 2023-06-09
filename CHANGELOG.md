@@ -6,6 +6,8 @@ change log follows the conventions of
 
 ## [Unreleased]
 
+## [6.0.0] — 2023-06-09
+
 ### Changed
 
 - This library was forked from `jimmythompson/halboy`
@@ -121,4 +123,5 @@ change log follows the conventions of
 
 [5.1.2]: https://github.com/logicblocks/halboy/compare/5.1.1...5.1.2
 
-[Unreleased]: https://github.com/logicblocks/halboy/compare/5.1.2...HEAD
+[6.0.0]: https://github.com/logicblocks/halboy/compare/5.1.2...6.0.0
+[Unreleased]: https://github.com/logicblocks/halboy/compare/6.0.0...HEAD
