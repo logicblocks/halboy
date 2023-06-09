@@ -1,4 +1,4 @@
-(defproject io.logicblocks/halboy "6.0.0"
+(defproject io.logicblocks/halboy "6.0.1-RC1"
   :description "a hypermedia parser and navigator"
   :license {:name "MIT License"
             :url  "https://opensource.org/licenses/MIT"}
