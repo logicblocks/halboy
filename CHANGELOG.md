@@ -6,10 +6,6 @@ change log follows the conventions of
 
 ## [Unreleased]
 
-### Added
-
-- `navigator/discover` now supports query params.
-
 ## [6.0.0] — 2023-06-09
 
 ### Changed
