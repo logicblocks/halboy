@@ -42,7 +42,7 @@
          (keywordize-keys)))
     (catch JsonParseException ex
       (assoc response
-        :error {:code :not-valid-json
+        :error {:code  :not-valid-json
                 :cause ex}))))
 
 (defn- with-transformed-params [m]

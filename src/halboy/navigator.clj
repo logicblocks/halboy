@@ -1,15 +1,13 @@
 (ns halboy.navigator
   (:refer-clojure :exclude [get])
-  (:require [clojure.walk :refer [keywordize-keys stringify-keys]]
-            [halboy.resource :as hal]
-            [halboy.data :refer [transform-values]]
+  (:require [halboy.resource :as hal]
             [halboy.json :as haljson]
-            [halboy.http.default :as client]
+            [halboy.http.clj-http :as client]
             [halboy.http.protocol :as http]
             [halboy.params :as params]
             [halboy.argutils :refer [deep-merge]]
             [halboy.url :as url])
-  (:import (halboy.resource Resource)))
+  (:import [halboy.resource Resource]))
 
 (def default-settings
   {:client           (client/new-http-client)
@@ -51,8 +49,7 @@
       (if (and self-link (url/absolute? self-link))
         self-link
         (throw
-          (ex-info
-            "No :resume-from option, and self link not absolute"
+          (ex-info "No :resume-from option, and self link not absolute"
             {:self-link-value self-link}))))))
 
 (defn- response->Navigator [response settings]
@@ -123,9 +120,15 @@
   (let [settings (deep-merge default-settings settings)
         request (deep-merge (:http settings) request)
         client (:client settings)
-        result (response->Navigator (http/exchange client request) settings)]
+        result (response->Navigator (http/exchange client request) settings)
+        redirect-location (extract-redirect-location result)]
     (if (follow-redirect? result)
-      (get-url (extract-redirect-location result) settings)
+      (if-not (nil? redirect-location)
+        (get-url redirect-location settings)
+        (throw (ex-info "Attempting to follow a redirect without a location header"
+                 {:headers  (get-in result [:response :headers])
+                  :resource (:resource result)
+                  :response (:response result)})))
       result)))
 
 (defn- post-url
